@@ -13,41 +13,41 @@ HRESULT NuiSkeletonGetNextFrame(
 )
 */
 
- // Call StartKinectST once at application start.
+ // Обращение к StartKinectST при запуске приложения.
     HRESULT MyApplication::StartKinectST()
     {
       m_hNextSkeletonEvent = NULL;
 
-      // Initialize m_pNuiSensor
+      // Инициализация m_pNuiSensor
       HRESULT hr = FindKinectSensor();
       if (SUCCEEDED(hr))
       {
-        // Initialize the Kinect and specify that we'll be using skeleton
+        // Инициализация Kinect и указать, что используем скелет
         hr = m_pNuiSensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_SKELETON);
         if (SUCCEEDED(hr))
         {
-          // Create an event that will be signaled when skeleton data is available
+          // Создать событие, которое будет сигнализировать, когда скелет данные доступны
           m_hNextSkeletonEvent = CreateEventW(NULL, TRUE, FALSE, NULL);
 
-          // Open a skeleton stream to receive skeleton data
+          // Запуск потока для получения данных
           hr = m_pNuiSensor->NuiSkeletonTrackingEnable(m_hNextSkeletonEvent, 0);
         }
       }
       return hr;
     }
 
- // Call UpdateKinectST on each iteration of the application's update loop.
+ // Обращение к UpdateKinectST при каждой итерации цикла обновления
     void MyApplication::UpdateKinectST()
     {
-      // Wait for 0ms, just quickly test if it is time to process a skeleton
+      // Ожидание 0ms, для проверки времени обработки скилета
       if ( WAIT_OBJECT_0 == WaitForSingleObject(m_hNextSkeletonEvent, 0) )
       {
         NUI_SKELETON_FRAME skeletonFrame = {0};
 
-        // Get the skeleton frame that is ready
+        // Получение кадра обработанного скилета
         if (SUCCEEDED(m_pNuiSensor->NuiSkeletonGetNextFrame(0, &skeletonFrame)))
         {
-          // Process the skeleton frame
+          // Определение кадра
           SkeletonFrameReady(&skeletonFrame);
         }
       }
@@ -72,10 +72,9 @@ typedef struct _NUI_SKELETON_FRAME {
 */
 void MyApplication::SkeletonFrameReady(NUI_SKELETON_FRAME* pSkeletonFrame)
   {
-    // Access members of pSkeletonFrame...
+    // Колличество участников
   }
-			//Получение доступа к совместной информацие
-			//и создание скелета
+			//Получение доступа к совместной информацие и создание скелета
 /*
 typedef struct _NUI_SKELETON_DATA {
     NUI_SKELETON_TRACKING_STATE eTrackingState;
@@ -90,22 +89,22 @@ typedef struct _NUI_SKELETON_DATA {
 */
   void MyApplication::DrawSkeleton(const NUI_SKELETON_DATA & skeleton)
     {
-      // Render Head and Shoulders
+      // Render голова и плечи
       DrawBone(skeleton, NUI_SKELETON_POSITION_HEAD, NUI_SKELETON_POSITION_SHOULDER_CENTER);
       DrawBone(skeleton, NUI_SKELETON_POSITION_SHOULDER_CENTER, NUI_SKELETON_POSITION_SHOULDER_LEFT);
       DrawBone(skeleton, NUI_SKELETON_POSITION_SHOULDER_CENTER, NUI_SKELETON_POSITION_SHOULDER_RIGHT);
 
-      // Render Left Arm
+      // Render левая рука
       DrawBone(skeleton, NUI_SKELETON_POSITION_SHOULDER_LEFT, NUI_SKELETON_POSITION_ELBOW_LEFT);
       DrawBone(skeleton, NUI_SKELETON_POSITION_ELBOW_LEFT, NUI_SKELETON_POSITION_WRIST_LEFT);
       DrawBone(skeleton, NUI_SKELETON_POSITION_WRIST_LEFT, NUI_SKELETON_POSITION_HAND_LEFT);
 
-      // Render Right Arm
+      // Render правая рука
       DrawBone(skeleton, NUI_SKELETON_POSITION_SHOULDER_RIGHT, NUI_SKELETON_POSITION_ELBOW_RIGHT);
       DrawBone(skeleton, NUI_SKELETON_POSITION_ELBOW_RIGHT, NUI_SKELETON_POSITION_WRIST_RIGHT);
       DrawBone(skeleton, NUI_SKELETON_POSITION_WRIST_RIGHT, NUI_SKELETON_POSITION_HAND_RIGHT);
 
-      // Render other bones...
+      // Render других частей...
     }
 
     void MyApplication::DrawBone(
@@ -119,22 +118,22 @@ typedef struct _NUI_SKELETON_DATA {
 
         if (jointFromState == NUI_SKELETON_POSITION_NOT_TRACKED || jointToState == NUI_SKELETON_POSITION_NOT_TRACKED)
         {
-          return; // nothing to draw, one of the joints is not tracked
+          return; // пропустить выполнение, один из суставов не отслеживается
         }
 
         const Vector4& jointFromPosition = skeleton.SkeletonPositions[jointFrom];
         const Vector4& jointToPosition = skeleton.SkeletonPositions[jointTo];
 
-        // Don't draw if both points are inferred
+        // Прекращение рисования если отслеживание возобновилось
         if (jointFromState == NUI_SKELETON_POSITION_INFERRED || jointToState == NUI_SKELETON_POSITION_INFERRED)
         {
           DrawNonTrackedBoneLine(jointFromPosition, jointToPosition); // Draw thin lines if either one of the joints is inferred
         }
 
-        // We assume all drawn bones are inferred unless BOTH joints are tracked
+        // Вывод костей при условие, что оба сустава не отслеживаются
         if (jointFromState == NUI_SKELETON_POSITION_TRACKED && jointToState == NUI_SKELETON_POSITION_TRACKED)
         {
-          DrawTrackedBoneLine(jointFromPosition, jointToPosition); // Draw bold lines if the joints are both tracked
+          DrawTrackedBoneLine(jointFromPosition, jointToPosition); // При отслеживании линии 2 суставов
         }
       }
 	 
@@ -143,7 +142,7 @@ typedef struct _NUI_SKELETON_DATA {
     {
       if (skeleton.dwQualityFlags & NUI_SKELETON_QUALITY_CLIPPED_BOTTOM)
       {
-        DrawClippedEdges(NUI_SKELETON_QUALITY_CLIPPED_BOTTOM); // Make the border red to show the user is reaching the border
+        DrawClippedEdges(NUI_SKELETON_QUALITY_CLIPPED_BOTTOM); // Выделение красным при достижении определенной зоны
       }
 
       if (skeleton.dwQualityFlags & NUI_SKELETON_QUALITY_CLIPPED_TOP)
@@ -176,7 +175,7 @@ void MyApplication::TrackClosestSkeleton(NUI_SKELETON_FRAME* pSkeletonFrame)
     m_hNextSkeletonEvent,
     NUI_SKELETON_TRACKING_FLAG_TITLE_SETS_TRACKED_SKELETONS);
 
-    float closestDistance = 10000.0f; // Start with a far enough distance
+    float closestDistance = 10000.0f; // Начинаем с больного расстояния
     DWORD closestIDs[NUI_SKELETON_MAX_TRACKED_COUNT] = {0, 0};
 
     for (int i = 0; i < NUI_SKELETON_COUNT; i++)
@@ -193,7 +192,7 @@ void MyApplication::TrackClosestSkeleton(NUI_SKELETON_FRAME* pSkeletonFrame)
  
       if (closestIDs[0] > 0)
       {
-        m_pNuiSensor->SetTrackedSkeletons(closestIDs); // Track this skeleton
+        m_pNuiSensor->SetTrackedSkeletons(closestIDs); // Определение скилета
       }
    }
    
